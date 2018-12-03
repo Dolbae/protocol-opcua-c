@@ -1,0 +1,70 @@
+
+import os
+env = Environment()
+
+buildDir= 'out/'
+
+def do__(self, arg):
+	Execute(arg)
+	print "\n"
+
+package='gtest'
+packageRevision='1.8.0'
+libDir='libs'
+gtestLibDir= package + '/googletest-release-' + packageRevision + '/googlemock/gtest'
+gtestIncDir= package + '/googletest-release-' + packageRevision + '/googletest/include'
+opcuaLibDir = '../build'
+incPath= '../include'
+
+
+AddMethod(env, do__)
+
+createLibDir = 'mkdir -p ' + libDir
+env.do__(createLibDir )
+
+copyGtestLib='cp -rf ' + gtestLibDir + '/*.so ' + libDir
+env.do__(copyGtestLib)
+
+copyOpcuaLib='cp -rf ' + opcuaLibDir + '/*.so ' + libDir
+env.do__(copyOpcuaLib)
+
+exportLibPath='export LD_LIBRARY_PATH=' + libDir
+env.do__(exportLibPath)
+
+#delBuildDir = 'rm -rf ' + buildDir
+#env.do__(delBuildDir)
+
+createBuildDir = 'mkdir -p ' + buildDir
+env.do__(createBuildDir )
+
+open62541LibVersion='_0.2'
+env['CPPPATH'] = [incPath, '../extlibs/open62541/open62541' + open62541LibVersion, gtestIncDir, '../src/utils', '../src/queue', '../src/command/browse']
+print env['CPPPATH']
+
+env.PrependUnique(CCFLAGS=['-g', '-Wno-write-strings'])
+
+env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main', 'm'])
+env.AppendUnique(LIBPATH=[libDir])
+env.AppendUnique(RPATH=['../libs'])
+
+env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
+
+#env.Program(target = [buildDir + 'server'], source = [buildDir + 'serverTest.c'])
+
+env.Program(target = 'test', source = [
+                                        buildDir + 'opcuaTest.cpp',
+                                        buildDir + 'utilTests.cpp',
+                                        buildDir + 'readTest.cpp',
+                                        buildDir + 'writeTest.cpp',
+                                        buildDir + 'methodTest.cpp',
+                                        buildDir + 'subscriptionTest.cpp',
+                                        buildDir + 'uqueue_test.cpp',
+                                        buildDir + 'uarraylist_test.cpp',
+                                        buildDir + 'octhread_tests.cpp'
+					])
+#env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
+
+#runTests='./opcuaTest --gtest_output="xml:./opcuatestReport.xml"'
+#env.do__(runTests)
+
+
